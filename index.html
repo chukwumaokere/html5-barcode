@@ -241,8 +241,8 @@
             </div>
 
 
-          <h1>Barcode Test</h1>
-            <div class="onlinedetector"><p id="msg"></p></div>
+          <h1>Barcode Test <span class="badge badge-secondary" id="status">Status</span></h1>
+            <!-- Deprecating, new badge method being used instead <div class="onlinedetector"><p id="msg"></p></div> -->
             <div class="controls">
                 <div class="input-group">
                   <div class="custom-file">
@@ -343,8 +343,20 @@
     <script>
         //offline detector
         const setMsg = (flag) => {
-          const p = document.getElementById('msg')
-          p.innerHTML = '<b>Online?</b> ' + flag
+          //const p = document.getElementById('msg')
+          //p.innerHTML = '<b>Online?</b> ' + flag
+            var badge = $('#status');
+            if (flag === true){
+               badge.html("Online"); 
+                badge.removeClass("badge-secondary");
+                badge.removeClass("badge-danger");
+                badge.addClass("badge-success");
+            }else{
+               badge.html("Offline"); 
+                badge.removeClass("badge-secondary");
+                badge.removeClass("badge-success");
+                badge.addClass("badge-danger");
+            }
         }
 
         setMsg(navigator.onLine)
