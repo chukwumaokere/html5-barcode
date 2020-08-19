@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <title>Barcode Test</title>
+    <style>
+        .custom-file-input:lang(en)~.custom-file-label::after {
+            content: "Take Photo";
+            background-color: #007bff;
+            color:white;
+        }
+        .input-group{
+            width: 100%%;
+        }
+        #interactive.viewport {
+          width: 640px;
+          height: 480px;
+        }
+
+
+        #interactive.viewport canvas, video {
+          float: left;
+          width: 640px;
+          height: 480px;
+        }
+
+        #interactive.viewport canvas.drawingBuffer, video.drawingBuffer {
+          margin-left: -640px;
+        }
+        #result_strip {
+          margin: 10px 0;
+          border-top: 1px solid #EEE;
+          border-bottom: 1px solid #EEE;
+          padding: 10px 0;
+        }
+
+        #result_strip > ul {
+          padding: 0;
+          margin: 0;
+          list-style-type: none;
+          width: auto;
+          overflow-x: auto;
+          overflow-y: hidden;
+          white-space: nowrap;
+        }
+
+        #result_strip > ul > li {
+          display: inline-block;
+          vertical-align: middle;
+          width: 160px;
+        }
+
+        #result_strip > ul > li .thumbnail {
+          padding: 5px;
+          margin: 4px;
+          border: 1px dashed #CCC;
+        }
+
+        #result_strip > ul > li .thumbnail img {
+          max-width: 140px;
+        }
+
+        #result_strip > ul > li .thumbnail .caption {
+          white-space: normal;
+        }
+
+        #result_strip > ul > li .thumbnail .caption h4 {
+          text-align: center;
+          word-wrap: break-word;
+          height: 40px;
+          margin: 0px;
+        }
+
+        #result_strip > ul:after {
+          content: "";
+          display: table;
+          clear: both;
+        }
+
+
+        .scanner-overlay {
+          display: none;
+          width: 640px;
+          height: 510px;
+          position: absolute;
+          padding: 20px;
+          top: 50%;
+          margin-top: -275px;
+          left: 50%;
+          margin-left: -340px;
+          background-color: #FFF;
+          -moz-box-shadow: #333333 0px 4px 10px;
+          -webkit-box-shadow: #333333 0px 4px 10px;
+          box-shadow: #333333 0px 4px 10px;
+        }
+
+        .scanner-overlay > .header {
+          position: relative;
+          margin-bottom: 14px;
+        }
+
+        .scanner-overlay > .header h4, .scanner-overlay > .header .close {
+          line-height: 16px;
+        }
+
+        .scanner-overlay > .header h4 {
+          margin: 0px;
+          padding: 0px;
+        }
+
+        .scanner-overlay > .header .close {
+          position: absolute;
+          right: 0px;
+          top: 0px;
+          height: 16px;
+          width: 16px;
+          text-align: center;
+          font-weight: bold;
+          font-size: 14px;
+          cursor: pointer;
+        }
+
+
+        i.icon-24-scan {
+          width: 24px;
+          height: 24px;
+          background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzFFMjMzNTBFNjcwMTFFMkIzMERGOUMzMzEzM0E1QUMiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzFFMjMzNTFFNjcwMTFFMkIzMERGOUMzMzEzM0E1QUMiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDMUUyMzM0RUU2NzAxMUUyQjMwREY5QzMzMTMzQTVBQyIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDMUUyMzM0RkU2NzAxMUUyQjMwREY5QzMzMTMzQTVBQyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PtQr90wAAAUuSURBVHjanFVLbFRVGP7ua97T9DGPthbamAYYBNSMVbBpjCliWWGIEBMWsnDJxkh8RDeEDW5MDGticMmGBWnSlRSCwgLFNkqmmrRIqzjTznTazkxn5s7c6/efzm0G0Jhwkj/nP+d/nv91tIWFBTQaDQWapkGW67p4ltUub5qmAi0UCqF/a/U2m81tpmddotwwDGSz2dzi4uKSaOucnJycGhsbe1XXdQiIIcdxEAgEtgXq9brySHCht79UXi/8QheawN27d385fPjwuEl6XyKR6LdtW7t06RLK5TKOHj2K/fv3Q87Dw8OYn5/HiRMnMDs7i5mZGQwODiqlPp8PuVwO6XRaOXb16lXl1OnTp5FMJvtosF8M+MWLarWqGJaWlpBKpRRcu3YN4+PjmJ6exsTEhDJw5coVjI6OKgPhcBiZTAbxeBx+vx+XL19Gd3c3Tp48Ka9zqDYgBlTQxYNgMIhIJKLCILkQb+TZsgvdsiyFi+feWRR7oRNZyanQtvW2V4DEUUBiK2eJpeDirSyhCe7F2QPh8fiEp72i9PbsC5G52DbiKZA771yr1dTuGfJ4PQNPFoAyQNR1aNEmsS5eyB3PgjeooMZd2AWvNmzYci/Gea7TeFOcI93jV/K67noGmi4vdRI9gPSDeMLSdKUBZZczlWm1rTtHjLZ24d+WER2tc8N1m+Y+ID74wx0zGYvhg9UNrJdtHJyZRdQfwPsrq9g99xsGlgsYmr6BNzO/IVwsYfjBQ6XYz6JI/72MV366B5/lw0elOkJWGUM3bmKtWjXSLuLaBWhnPnnp0FfoiFi4+TMfVAb2poBkDLjO845uYLEAjL4ALGWBP5YAOsP4AJYBFDaB1HOSVWD2PuV95H2RdV93Lv74/cf6p6Zxq/h6OofeOPJBC39JtONdwOAAViOs4p4OFGTf0Uc8iiyrr9YdQrUnDLsngrVOC0jQib44HlF2RafRZBz1Qy+vfhgK3NJZBlrm+LEm9qWwzFgLU7Ozg0JxZP06jQSRpQ7EerAWDSt6PuhHPmChEAog56fCLvJT5hHTm3OZkz3DyLx7XNWTGEA1GkV14gjWgwbW0ESVjYRwCOuai03L5E7OUBAV4kXSS4auoGIaKOma4m8EA5R1sMEGLh95C+XuLph0WJWpxepYYLtfT0RRgY1KgNODY6BoaChRuEhDCIZQYseuki5KN6hcQHiq7OZNv4/Zq2O6P4Lfkwn46vZjjaYZrIpvWbpzjLErrc4xUGE4avRedpYJalRcIl5hQius/SrPm9xrNOQYJhao6BvNUeWqtY8KaWuNjHOFAr7mM9f4NA4UbKysoUJ8PV9UzVOx6wxDDWUOxnK1pmCD07fOMAvtIsM3l89Dl3HRGhVma9AZMqjOnz2LQqWCxs6dqr3T7x1DTzKJaG8SekcHhg4cgI/56uKdlKnBV/WndqN3YAB/7tyBd3oT6GBIOzs7kc/nDfFdDFT5bS73cp06dQoaPa/Rw/rtO/resTHxxE2m9rCrbSR27UJCcMf1BpiA5rAAGgdfc868fUR1sMwj0cm9Iu9IctweisViB3hhKTHDcHc5jv/LspbyaZrR1OD82/fIlOkuB9LnEWRmDX2TsddUPg3D5gvuc0je0rZaD5EW6G3yjS+A3eeBEWq3XW/Abw1HhUspXADufQb86oW7tZytkYCN//3hHwBvDALPi8EnSOYK8DAOfCc2h4aGcO7cuafkzampqf9UripH12/DtOZbx8ciVGzYy5OO40o25ascGRl5Ssc/AgwAjW3JwqIUjSYAAAAASUVORK5CYII=");
+          display: inline-block;
+          background-repeat: no-repeat;
+          line-height: 24px;
+          margin-top: 1px;
+          vertical-align: text-top;
+        }
+        @media (max-width: 603px) {
+
+          .reader-config-group {
+            width: 100%;
+          }
+
+          .reader-config-group label > span {
+              width: 50%;
+          }
+
+          .reader-config-group label > select, .reader-config-group label > input {
+              max-width: calc(50% - 2px);
+          }
+
+          #interactive.viewport {
+            width: 300px;
+            height: 300px;
+            overflow: hidden;
+          }
+
+
+          #interactive.viewport canvas, video {
+            margin-top: -50px;
+            width: 300px;
+            height: 400px;
+          }
+
+          #interactive.viewport canvas.drawingBuffer, video.drawingBuffer {
+            margin-left: -300px;
+          }
+
+
+          #result_strip {
+            margin-top: 5px;
+            padding-top: 5px;
+          }
+
+          #result_strip ul.thumbnails > li {
+            width: 150px;
+          }
+
+          #result_strip ul.thumbnails > li .thumbnail .imgWrapper {
+            width: 130px;
+            height: 130px;
+            overflow: hidden;
+          }
+
+          #result_strip ul.thumbnails > li .thumbnail .imgWrapper img {
+            margin-top: -25px;
+            width: 130px;
+            height: 180px;
+          }
+        }
+        @media (max-width: 603px) {
+
+          .overlay.scanner {
+            width: 640px;
+            height: 510px;
+            padding: 20px;
+            margin-top: -275px;
+            margin-left: -340px;
+            background-color: #FFF;
+            -moz-box-shadow: none;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+          }
+
+          .overlay.scanner > .header {
+            margin-bottom: 14px;
+          }
+
+          .overlay.scanner > .header h4, .overlay.scanner > .header .close {
+            line-height: 16px;
+          }
+
+          .overlay.scanner > .header .close {
+            height: 16px;
+            width: 16px;
+          }
+        }
+    </style>
+</head>
+<body>  
+
+    <div id="main">
+        <div class="container" aria-live="polite" aria-atomic="true" style="position: relative; min-height: 200px;">
+            
+          <!-- Position it -->
+          <div style="position: absolute; top: 0; right: 0;">
+
+            <!-- Then put toasts within -->
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" style="min-width: 300px;">
+              <div class="toast-header">
+                <img src="" class="rounded mr-2" alt="">
+                <strong class="mr-auto">Barcode Scanned</strong>
+                <small class="text-muted">just now</small>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="toast-body" id="toast-body" >
+                Code: 
+              </div>
+            </div>
+
+            </div>
+
+
+          <h1>Barcode Test</h1>
+            <div class="onlinedetector"><p id="msg"></p></div>
+            <div class="controls">
+                <div class="input-group">
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04"  accept="image/*;capture=camera">
+                    <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+                  </div>
+                </div>
+                <br>
+                <button class="btn btn-primary" id="rerun">Rerun</button>
+                <div class="reader-config-group">
+                    <fieldset class="reader-config-group">
+                        <label>
+                            <span>Barcode-Type</span>
+                            <select name="decoder_readers">
+                                <option value="code_128" selected="selected">Code 128</option>
+                                <option value="code_39">Code 39</option>
+                                <option value="code_39_vin">Code 39 VIN</option>
+                                <option value="ean">EAN</option>
+                                <option value="ean_extended">EAN-extended</option>
+                                <option value="ean_8">EAN-8</option>
+                                <option value="upc">UPC</option>
+                                <option value="upc_e">UPC-E</option>
+                                <option value="codabar">Codabar</option>
+                                <option value="i2of5">Interleaved 2 of 5</option>
+                                <option value="2of5">Standard 2 of 5</option>
+                                <option value="code_93">Code 93</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Resolution (width)</span>
+                            <select name="input-stream_constraints">
+                                <option value="320x240">320px</option>
+                                <option selected="selected" value="640x480">640px</option>
+                                <option value="800x600">800px</option>
+                                <option value="1280x720">1280px</option>
+                                <option value="1600x960">1600px</option>
+                                <option value="1920x1080">1920px</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Patch-Size</span>
+                            <select name="locator_patch-size">
+                                <option value="x-small">x-small</option>
+                                <option value="small">small</option>
+                                <option selected="selected" value="medium">medium</option>
+                                <option value="large">large</option>
+                                <option value="x-large">x-large</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Half-Sample</span>
+                            <input type="checkbox" checked="checked" name="locator_half-sample" />
+                        </label>
+                        <label>
+                            <span>Workers</span>
+                            <select name="numOfWorkers">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option selected="selected" value="4">4</option>
+                                <option value="8">8</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>Camera</span>
+                            <select name="input-stream_constraints" id="deviceSelection">
+                            </select>
+                        </label>
+                        <label style="display: none">
+                            <span>Zoom</span>
+                            <select name="settings_zoom"></select>
+                        </label>
+                        <label style="display: none">
+                            <span>Torch</span>
+                            <input type="checkbox" name="settings_torch" />
+                        </label>
+                    </fieldset>
+                </div>
+            </div> <!-- controls -->
+            <div id="result_strip">
+                <ul class="thumbnails"></ul>
+                <ul class="collector"></ul>
+            </div>
+            <div id="interactive" class="viewport"></div>
+            <div id="debug" class="detection"></div>
+        </div> <!-- container -->
+    </div> <!-- main -->
+    
+    <!-- Some Javascript Stuff -->
+    <script src="./quaggaJS-master/dist/quagga.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js" integrity="sha384-LtrjvnR4Twt/qOuYxE721u19sVFLVSA4hf/rRt6PrZTmiPltdZcI7q7PXQBYTKyf" crossorigin="anonymous"></script>
+    <script src="./quaggaJS-master/example/live_w_locator.js" type="text/javascript"></script>
+    <script src="./quaggaJS-master/example/file_input.js" type="text/javascript"></script>
+
+    <script>
+        //offline detector
+        const setMsg = (flag) => {
+          const p = document.getElementById('msg')
+          p.innerHTML = '<b>Online?</b> ' + flag
+        }
+
+        setMsg(navigator.onLine)
+
+        window.addEventListener("online", () => {
+          setMsg(true);
+        })
+        window.addEventListener("offline", () => {
+          setMsg(false);
+        })
+
+    </script>
+
+    <script>
+        var options = {
+            delay: 2000,
+        };
+        $(".toast").toast(options);
+    
+    </script>
+</body>
+</html>
