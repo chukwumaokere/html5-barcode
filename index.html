@@ -3,6 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <script>
+    const start = async function(){
+        if('serviceWorker' in navigator) {
+          const registerServiceWorker = async () =>  
+          navigator.serviceWorker.register('./service-worker.js').then(registration => { console.log(registration); });
+          const registration = await registerServiceWorker();
+        }
+    }
+    start();
+    </script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <title>Barcode Test</title>
     <style>
@@ -247,7 +257,7 @@
                 <div class="input-group">
                   <div class="custom-file">
                     <input type="file" class="custom-file-input" id="inputGroupFile04" aria-describedby="inputGroupFileAddon04"  accept="image/*;capture=camera">
-                    <label class="custom-file-label" for="inputGroupFile04">Choose file</label>
+                    <label class="custom-file-label" for="inputGroupFile04">Take or Upload a Photo...</label>
                   </div>
                 </div>
                 <br>
